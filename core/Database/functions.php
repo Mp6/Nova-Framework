@@ -16,7 +16,30 @@ require_once "Table/Column-Class.php";
 function DefineConstants($settings)
 {
 	//Define table constants
+	//Define TEXT data types
 	define(__NAMESPACE__."\Table\ColumnTypes\VARCHAR", "VARCHAR");
+	define(__NAMESPACE__."\Table\ColumnTypes\CHAR", "CAR");
+	define(__NAMESPACE__."\Table\ColumnTypes\TINYTEXT", "TINYTEXT");
+	define(__NAMESPACE__."\Table\ColumnTypes\TEXT", "TEXT");
+	define(__NAMESPACE__."\Table\ColumnTypes\BLOB", "BLOB");
+	define(__NAMESPACE__."\Table\ColumnTypes\MEDIUMTEXT", "MEDIUMTEXT");
+	define(__NAMESPACE__."\Table\ColumnTypes\LONGTEXT", "LONGTEXT");
+	define(__NAMESPACE__."\Table\ColumnTypes\LONGBLOB", "LONGBLOB");
+	//Define NUMBER data types
+	define(__NAMESPACE__."\Table\ColumnTypes\TINYINT", "TINYINT");
+	define(__NAMESPACE__."\Table\ColumnTypes\SMALLINT", "SMALLINT");
+	define(__NAMESPACE__."\Table\ColumnTypes\MEDIUMINT", "MEDIUMINT");
+	define(__NAMESPACE__."\Table\ColumnTypes\INT", "INT");
+	define(__NAMESPACE__."\Table\ColumnTypes\BIGINT", "BIGINT");
+	define(__NAMESPACE__."\Table\ColumnTypes\FLOAT", "FLOAT");
+	define(__NAMESPACE__."\Table\ColumnTypes\DOUBLE", "DOUBLE");
+	define(__NAMESPACE__."\Table\ColumnTypes\DECIMAL", "DECIMAL");
+	//Define DATE data types
+	define(__NAMESPACE__."\Table\ColumnTypes\DATE", "DATE");
+	define(__NAMESPACE__."\Table\ColumnTypes\DATETIME", "DATETIME");
+	define(__NAMESPACE__."\Table\ColumnTypes\TIMESTAMP", "TIMESTAMP");
+	define(__NAMESPACE__."\Table\ColumnTypes\TIME", "TIME");
+	define(__NAMESPACE__."\Table\ColumnTypes\YEAR", "YEAR");
 }
 
 function UpdateCoreTables()
