@@ -23,5 +23,18 @@ Error\DefineConstants($settings["Error"]);
 //Set our error handling function
 \set_error_handler('\CORE\Error\ErrorHandler');
 
-//Initialize the database
+//Initialize database constants
+$db_settings = $settings["Database"];
+Database\DefineConstants($db_settings);
+
+//Initialize the database connection
+new Database\Connection($db_settings["username"], $db_settings["password"], $db_settings["server_address"], $db_settings["database"]);
+
+//Check to see if any core database tables need updating
+Database\UpdateCoreTables();
+
+$table = new Database\Table("TEST");
+
+//Unset the database settings
+unset($db_settings);
 ?>

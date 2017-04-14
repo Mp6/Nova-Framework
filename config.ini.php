@@ -8,8 +8,8 @@ maintenance = false ;TODO
 
 [Error]
 debug = true
-console_output = true
-log_output = true
+console_output = false
+log_output = false
 window_output = true
 
 [Database]

@@ -1,6 +1,12 @@
 <?php
+//Set the file's namespace
 namespace CORE\Error;
 
+//Make sure the files are not being accessed directly
+if(\CORE\INIT !== true)
+	die("Wumbo");
+
+//Include other error code
 require_once "Exception-Class.php";
 
 /**
@@ -21,12 +27,18 @@ function DefineConstants($settings)
 
 	//Database error codes
 	define(__NAMESPACE__."\DatabaseError\E_DB_CONNECT_FAIL", 129);
+	define(__NAMESPACE__."\DatabaseError\E_NO_DB_CONNECTION", 130);
+	define(__NAMESPACE__."\DatabaseError\E_NO_QUERY_TYPE", 131);
+	define(__NAMESPACE__."\DatabaseError\E_NO_TABLE", 132);
+	define(__NAMESPACE__."\DatabaseError\E_INVALID_TABLE", 133);
+	define(__NAMESPACE__."\DatabaseError\E_COLUMN_NOT_FOUND", 134);
+	define(__NAMESPACE__."\DatabaseError\E_PREPARE_ERROR", 135);
 }
 
 /**
 *This function handles errors triggered by the codebase and outputs messages to appropriate locations
 */
-function ErrorHandler($error_number, $error_string, $error_file, $error_line, $error_context)
+function ErrorHandler($error_number, $error_string, $error_file, $error_line, $error_context = false)
 {
 	//Get the file (not the full directory) that the error occured
 	$file_single = explode("/", $error_file);
@@ -49,7 +61,7 @@ function ErrorHandler($error_number, $error_string, $error_file, $error_line, $e
 			$type_name = "Unhandled Error E_PARSE";
 		break;
 		case \E_NOTICE:
-			$type_name = "Unhandled Error E_NOTICE";
+			$type_name = "Notice";
 		break;
 		case \E_CORE_ERROR:
 			$type_name = "Unhandled Error E_CORE_ERROR";
@@ -95,6 +107,24 @@ function ErrorHandler($error_number, $error_string, $error_file, $error_line, $e
 		//Database Errors
 		case DatabaseError\E_DB_CONNECT_FAIL:
 			$type_name = "Database Connection Failed";
+		break;
+		case DatabaseError\E_NO_DB_CONNECTION:
+			$type_name = "No Database Connection Found";
+		break;
+		case DatabaseError\E_NO_QUERY_TYPE:
+			$type_name = "No Query Type Selected";
+		break;
+		case DatabaseError\E_NO_TABLE:
+			$type_name = "No Table Selected";
+		break;
+		case DatabaseError\E_INVALID_TABLE:
+			$type_name = "Table Could Not Be Found";
+		break;
+		case DatabaseError\E_COLUMN_NOT_FOUND:
+			$type_name = "Column Could Not Be Found";
+		break;
+		case DatabaseError\E_PREPARE_ERROR:
+			$type_name = "Failed To Prepare SQL Query";
 		break;
 
 		//Unhandled Error Codes
@@ -186,7 +216,6 @@ function OutputLogMessage($message)
 	$timestamp = "[".date(\CORE\Settings\DateTimeFormat)."] ";
 
 	//Put the message into the output log
-	echo "Logging Message\n";
 	file_put_contents($log_location, $timestamp.$message, \FILE_APPEND);
 }
 ?>
