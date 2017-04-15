@@ -34,6 +34,7 @@ new Database\Connection($db_settings["username"], $db_settings["password"], $db_
 Database\UpdateCoreTables();
 
 $table = new Database\Table("TEST");
+$table->ValidateDataType("test");
 
 //Unset the database settings
 unset($db_settings);

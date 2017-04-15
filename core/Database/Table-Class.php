@@ -14,7 +14,7 @@ class Table {
 	protected $table_name, $valid_table;
 
 	//Columns in the table
-	protected $columns;
+	protected $columns, $new_columns, $remove_columns, $change_columns;
 
 	function __construct($table_name, $connection = NULL) 
 	{
@@ -39,6 +39,57 @@ class Table {
 	/**
 	*This function returns whether or not we have a valid table selected
 	*/
+	public function ValidTable()
+	{
+		return $this->valid_table;
+	}
+
+	/**
+	*This function adds a column to the table
+	*/
+	public function AddColumn()
+	{
+
+	}
+
+	/**
+	*This function removes a column from a table
+	*/
+	public function RemoveColumn()
+	{
+
+	}
+
+	/**
+	*This function modifies an existing column
+	*/
+	public function ModifyColumn()
+	{
+
+	}
+
+	/**
+	*This function finalizes updates made to the table and alters it
+	*/
+	public function FinalizeUpdates()
+	{
+
+	}
+
+	/**
+	*This function checks to see if a given column name exists
+	*/
+	public function ColumnExists($column_name)
+	{
+		//Iterate through the columns in the table to see if it exists
+		foreach($this->columns as $column)
+		{
+			if($column->name === $column_name)
+				return true;
+		}
+
+		return false;
+	}
 
 	/*
 	=====================================================================================================================================================================
@@ -70,18 +121,10 @@ class Table {
 		}
 
 		//Validate that the table name can actually be used (only letters, numbers, dollar sign, and underscore)
-		preg_match("/[0-9a-zA-Z$_]{1,}/", $table_name, $match);
-
-		//Make sure we only have one match
-		if(count($match) === 1)
+		if($this->ValidateDatabaseName($table_name))
 		{
-			//Make sure the table name is the same as our match
-			if($match[0] === $table_name)
-			{
-				//Tell the system the table does not exist and store the table name
-				$this->table_name = $table_name;
-				return false;
-			}
+			$this->table_name = $table_name;
+			return false;
 		}
 
 		//Throw an exception because the passed table name is not valid
@@ -102,6 +145,43 @@ class Table {
 		$columns = $query->Query("DESCRIBE ".$this->table_name);
 
 		print_r($columns);
+	}
+
+	/**
+	*This function validates a passed column name
+	*/
+	protected function ValidateDatabaseName($name)
+	{
+		//Validate that the table name can actually be used (only letters, numbers, dollar sign, and underscore)
+		preg_match("/[0-9a-zA-Z$_]{1,}/", $name, $match);
+
+		//Make sure we only have one match
+		if(count($match) === 1)
+		{
+			//Make sure the table name is the same as our match
+			if($match[0] === $name)
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
+	*This function validates a passed data type for a column
+	*/
+	public function ValidateDataType($data_type)
+	{
+		//Get the ColumnType constants
+		$constants = \CORE\GetCoreConstants("Database\Table\ColumnTypes");
+
+		//Iterate through the constants to find a matching constant
+		foreach($constants as $c_data_type)
+		{
+			if($c_data_type === $data_type)
+				return true;
+		}
+
+		return false;
 	}
 }
 ?>

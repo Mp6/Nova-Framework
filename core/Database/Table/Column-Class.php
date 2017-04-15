@@ -14,5 +14,18 @@ class Column {
 	public $key;
 	public $default;
 	public $extra;
+
+	function __construct($column = NULL)
+	{
+		if($column !== NULL)
+		{
+			$this->type = $column->type;
+			$this->name = $column->name;
+			$this->null = $column->null;
+			$this->key = $column->key;
+			$this->default = $column->default;
+			$this->extra = $column->extra;
+		}
+	}
 }
 ?>
