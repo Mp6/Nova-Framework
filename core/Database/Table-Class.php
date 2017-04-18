@@ -26,9 +26,14 @@ class Table {
 
 		//Attempt to validate the table, if valid grab the column data
 		if(($this->valid_table = $this->ValidateTable($table_name)))
-		{
 			$this->GatherColumnData();
-		}
+		else
+			$this->columns = array();
+
+		//Initialize our column arrays
+		$this->new_columns = array();
+		$this->remove_columns = array();
+		$this->change_columns = array();
 	}
 
 	function __destruct()
@@ -47,9 +52,48 @@ class Table {
 	/**
 	*This function adds a column to the table
 	*/
-	public function AddColumn()
+	public function AddColumn($name, $type, $null = true, $key = NULL, $extra = NULL)
 	{
+		//Validate the column name
+		if($this->ColumnExists($name))
+			throw new \CORE\Error\Exception("Column Already Exists", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+		if(!$this->ValidateDatabaseName($name))
+			throw new \CORE\Error\Exception("Column Name Contains Illegal Characters", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
 
+		//Validate the data type
+		if(is_array($type))
+		{
+			if(!is_int($type[1]))
+				throw new \CORE\Error\Exception("Unkown Type Array Parameter", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+			$type_name = $type[0];
+		}
+		else
+			$type_name = $type;
+		if(!$this->ValidateDataType($type_name))
+			throw new \CORE\Error\Exception("Invalid Data Type", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+
+		//Validate the key
+		if(!$this->ValidateKey($key))
+			throw new \CORE\Error\Exception("Invalid Key Type", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+
+		//Validate the extra variables
+		if(!$this->ValidateExtra($extra))
+			throw new \CORE\Error\Exception("Invalid Extra Type", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+
+		//Generate the column and store it in the "new columns" section
+		$column = new Table\Column();
+		$column->name = $name;
+		$column->null = $null;
+		$column->key = $key;
+		$column->extra = $extra;
+		$column->default = NULL;
+		if(is_array($type) && is_int($type[1]))
+			$column->type = $type_name."(".$type[1].")";
+		else
+			$column->type = $type_name;
+
+		//Store the column in "new columns"
+		$this->new_columns[] = $column;
 	}
 
 	/**
@@ -144,7 +188,33 @@ class Table {
 		$query = new Query($this->connection);
 		$columns = $query->Query("DESCRIBE ".$this->table_name);
 
-		print_r($columns);
+		$this->columns = array();
+
+		foreach($columns as $column)
+		{
+			$column_obj = new Table\Column();
+			$column_obj->name = $column["Field"];
+			$column_obj->type = $column["Type"];
+			$column_obj->default = $column["Default"];
+			if($column["Null"] === "NO")
+				$column_obj->null = Table\NullTypes\NOT_NULL;
+			else
+				$column_obj->null = NULL;
+			if($column["Key"] === "PRI")
+				$column_obj->key = Table\KeyTypes\PRIMARY;
+			else if($column["Key"] === "UNI")
+				$column_obj->key = Table\KeyTypes\UNIQUE;
+			else
+				$column_obj->key = NULL;
+			if($column["Extra"] === "auto_increment")
+				$column_obj->extra = Table\ExtraTypes\AUTO_INCREMENT;
+			else
+				$column_obj->extra = NULL;
+
+			$this->columns[] = $column_obj;
+		}
+
+		print_r($this->columns);
 	}
 
 	/**
@@ -153,7 +223,7 @@ class Table {
 	protected function ValidateDatabaseName($name)
 	{
 		//Validate that the table name can actually be used (only letters, numbers, dollar sign, and underscore)
-		preg_match("/[0-9a-zA-Z$_]{1,}/", $name, $match);
+		preg_match("/[0-9a-zA-Z$\_]{1,}/", $name, $match);
 
 		//Make sure we only have one match
 		if(count($match) === 1)
@@ -169,7 +239,7 @@ class Table {
 	/**
 	*This function validates a passed data type for a column
 	*/
-	public function ValidateDataType($data_type)
+	protected function ValidateDataType($data_type)
 	{
 		//Get the ColumnType constants
 		$constants = \CORE\GetCoreConstants("Database\Table\ColumnTypes");
@@ -180,6 +250,27 @@ class Table {
 			if($c_data_type === $data_type)
 				return true;
 		}
+
+		return false;
+	}
+
+	/**
+	*This function validates a column's key value
+	*/
+	protected function ValidateKey($key_type)
+	{
+		if($key_type === NULL)
+			return true;
+		return false;
+	}
+
+	/**
+	*This function validates extra parameters for a column
+	*/
+	protected function ValidateExtra($extra_type)
+	{
+		if($extra_type === NULL)
+			return true;
 
 		return false;
 	}

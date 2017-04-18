@@ -40,6 +40,13 @@ function DefineConstants($settings)
 	define(__NAMESPACE__."\Table\ColumnTypes\TIMESTAMP", "TIMESTAMP");
 	define(__NAMESPACE__."\Table\ColumnTypes\TIME", "TIME");
 	define(__NAMESPACE__."\Table\ColumnTypes\YEAR", "YEAR");
+	//Define NULL types
+	define(__NAMESPACE__."\Table\NullTypes\NOT_NULL", "NOT NULL");
+	//Define KEY types
+	define(__NAMESPACE__."\Table\KeyTypes\PRIMARY", "UNIQUE PRIMARY KEY");
+	define(__NAMESPACE__."\Table\KeyTypes\UNIQUE", "UNIQUE");
+	//Define EXTRA types
+	define(__NAMESPACE__."\Table\ExtraTypes\AUTO_INCREMENT", "AUTO_INCREMENT");
 }
 
 function UpdateCoreTables()

@@ -33,8 +33,8 @@ new Database\Connection($db_settings["username"], $db_settings["password"], $db_
 //Check to see if any core database tables need updating
 Database\UpdateCoreTables();
 
-$table = new Database\Table("TEST");
-$table->ValidateDataType("test");
+$table = new Database\Table("TEST3");
+// $table->AddColumn("derp", array(Database\Table\ColumnTypes\INT, 3), false);
 
 //Unset the database settings
 unset($db_settings);
