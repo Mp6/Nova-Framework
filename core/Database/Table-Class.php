@@ -52,7 +52,7 @@ class Table {
 	/**
 	*This function adds a column to the table
 	*/
-	public function AddColumn($name, $type, $null = true, $key = NULL, $extra = NULL)
+	public function AddColumn($name, $type, $null = NULL, $key = NULL, $extra = NULL)
 	{
 		//Validate the column name
 		if($this->ColumnExists($name))
@@ -99,17 +99,63 @@ class Table {
 	/**
 	*This function removes a column from a table
 	*/
-	public function RemoveColumn()
+	public function RemoveColumn($name)
 	{
+		//Validate the column name
+		if(!$this->ColumnExists($name))
+			throw new \CORE\Error\Exception("Column not found", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
 
+		//Create the column object to remove it
+		$column = new Table\Column();
+		$column->name = $name;
+
+		//Store the column to be removed
+		$this->remove_columns[] = $column;
 	}
 
 	/**
-	*This function modifies an existing column
+	*This function modifies an existing column (NAME CANNOT CHANGE)
 	*/
-	public function ModifyColumn()
+	public function ModifyColumn($name, $type, $null = NULL, $key = NULL, $extra = NULL)
 	{
+		//Validate the column name
+		if(!$this->ColumnExists($name))
+			throw new \CORE\Error\Exception("Column not found", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
 
+		//Validate the data type
+		if(is_array($type))
+		{
+			if(!is_int($type[1]))
+				throw new \CORE\Error\Exception("Unkown Type Array Parameter", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+			$type_name = $type[0];
+		}
+		else
+			$type_name = $type;
+		if(!$this->ValidateDataType($type_name))
+			throw new \CORE\Error\Exception("Invalid Data Type", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+
+		//Validate the key
+		if(!$this->ValidateKey($key))
+			throw new \CORE\Error\Exception("Invalid Key Type", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+
+		//Validate the extra variables
+		if(!$this->ValidateExtra($extra))
+			throw new \CORE\Error\Exception("Invalid Extra Type", \CORE\Error\DatabaseError\E_INVALID_COLUMN);
+
+		//Generate the column and store it in the "new columns" section
+		$column = new Table\Column();
+		$column->name = $name;
+		$column->null = $null;
+		$column->key = $key;
+		$column->extra = $extra;
+		$column->default = NULL;
+		if(is_array($type) && is_int($type[1]))
+			$column->type = $type_name."(".$type[1].")";
+		else
+			$column->type = $type_name;
+
+		//Store the column in "new columns"
+		$this->change_columns[] = $column;
 	}
 
 	/**
@@ -117,7 +163,126 @@ class Table {
 	*/
 	public function FinalizeUpdates()
 	{
+		//Get our connection to the database connected to this table
+		$query_obj = new Query($this->connection);
 
+		//If the table isn't valid (hasn't been created), create it
+		$success = true;
+		if(!$this->valid_table)
+		{
+			//Prepare the create statement
+			if(count($this->new_columns) !== 0)
+			{
+				//Generate the create table query (column data has been previously validated)
+				$query = "CREATE TABLE ".$this->table_name." (\n";
+				foreach($this->new_columns as $key=>$column)
+				{
+					//Add the data for the given column
+					$query .= $this->GetColumnQueryString($column);
+
+					//Check to see if we have added the last column
+					if(!array_key_exists($key + 1, $this->new_columns))
+						$query .= "\n";
+					else
+						$query .= ",\n";
+				}
+
+				$query .= ");";
+
+				$result = $query_obj->Query($query);
+				if($result === false)
+				{
+					trigger_error("Failed to create table ".$this->table_name, \E_USER_WARNING);
+					$success = false;
+				}
+				else
+					$this->valid_table = true;
+			}
+		}
+		else
+		{
+			//Add new columns to the table
+			$query = "";
+			if(count($this->new_columns) !== 0)
+			{
+				//Generate the new column queries
+				foreach($this->new_columns as $column)
+				{
+					$query .= "ADD ".$this->GetColumnQueryString($column).",\n";
+				}
+			}
+			//Alter existing columns in the table
+			if(count($this->change_columns) !== 0)
+			{
+				//Generate the modify column queries
+				foreach($this->change_columns as $column)
+				{
+					$query .= "MODIFY ".$this->GetColumnQueryString($column).",\n";
+				}
+			}
+			//Remove desired columns in the table
+			if(count($this->remove_columns) !== 0)
+			{
+				//Generate the remove column queries
+				foreach($this->remove_columns as $column)
+				{
+					$query .= "DROP COLUMN ".$column->name.",\n";
+				}
+			}
+
+			//Finalize the query string, remove the final comma and replace with a ;
+			$query = "ALTER TABLE ".$this->table_name."\n".$query;
+			$query = substr($query, 0, count($query) - 3).";";
+
+			//Execute the query and check for an error
+			$result = $query_obj->Query($query);
+			if($result === false)
+			{
+				trigger_error("Failed to modify table ".$this->table_name, \E_USER_WARNING);
+				$success = false;
+			}
+		}
+
+		//Unset all column change data
+		unset($this->change_columns);
+		unset($this->new_columns);
+		unset($this->remove_columns);
+
+		//Reset the columns to their original state
+		$this->change_columns = array();
+		$this->new_columns = array();
+		$this->remove_columns = array();
+
+		//If we succeeded when running our qeries, regenerate the column data
+		if($success)
+			$this->GatherColumnData();
+
+		return $success;
+	}
+
+	/**
+	*This function drops the currently loaded table
+	*/
+	public function DropTable()
+	{
+		//Make sure the current table is valid
+		if(!$this->valid_table)
+			throw new \CORE\Error\Exception("Failed to drop table, table is not valid", \CORE\Error\DatabaseError\E_INVALID_TABLE);
+
+		//Execute the query to drop the table
+		$query = "DROP TABLE ".$this->table_name.";";
+		$query_obj = new Query($this->connection);
+		if(($result = $query_obj->Query($query)) === false)
+		{
+			trigger_error("Failed to drop table ".$this->table_name, \E_USER_WARNING);
+			return false;
+		}
+
+		//Reset table data so we know it's no longer valid
+		$this->valid_table = false;
+		$this->columns = array();
+
+		return true;
 	}
 
 	/**
@@ -214,7 +379,24 @@ class Table {
 			$this->columns[] = $column_obj;
 		}
 
-		print_r($this->columns);
+		return true;
+	}
+
+	/**
+	*This function takes a column object and turns it into a useable query string
+	*/
+	protected function GetColumnQueryString($column)
+	{
+		//Add the data for the given column
+		$query = $column->name." ".$column->type;
+		if($column->null !== NULL)
+			$query .= " ".$column->null;
+		if($column->key !== NULL)
+			$query .= " ".$column->key;
+		if($column->extra !== NULL)
+			$query .= " ".$column->extra;
+
+		return $query;
 	}
 
 	/**
@@ -259,8 +441,20 @@ class Table {
 	*/
 	protected function ValidateKey($key_type)
 	{
+		//Check to see if our key type is null (no key)
 		if($key_type === NULL)
 			return true;
+
+		//Get the KeyTypes constants
+		$constants = \CORE\GetCoreConstants("Database\Table\KeyTypes");
+
+		//Iterate through the constants to find a matching constant
+		foreach($constants as $c_key_type)
+		{
+			if($c_key_type === $key_type)
+				return true;
+		}
+
 		return false;
 	}
 
@@ -269,8 +463,19 @@ class Table {
 	*/
 	protected function ValidateExtra($extra_type)
 	{
+		//Check to see if our extra type is null
 		if($extra_type === NULL)
 			return true;
+
+		//Get the ExtraTypes constants
+		$constants = \CORE\GetCoreConstants("Database\Table\ExtraTypes");
+
+		//Iterate through the constants to find a matching constant
+		foreach($constants as $c_extra_type)
+		{
+			if($c_extra_type === $extra_type)
+				return true;
+		}
 
 		return false;
 	}

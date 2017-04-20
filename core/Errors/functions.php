@@ -34,6 +34,7 @@ function DefineConstants($settings)
 	define(__NAMESPACE__."\DatabaseError\E_COLUMN_NOT_FOUND", 134);
 	define(__NAMESPACE__."\DatabaseError\E_PREPARE_ERROR", 135);
 	define(__NAMESPACE__."\DatabaseError\E_INVALID_COLUMN", 136);
+	define(__NAMESPACE__."\DatabaseError\E_FAILED_QUERY", 137);
 }
 
 /**
@@ -129,6 +130,9 @@ function ErrorHandler($error_number, $error_string, $error_file, $error_line, $e
 		break;
 		case DatabaseError\E_INVALID_COLUMN:
 			$type_name = "Column Not Valid";
+		break;
+		case DatabaseError\E_FAILED_QUERY:
+			$type_name = "Query Failed to Execute";
 		break;
 
 		//Unhandled Error Codes

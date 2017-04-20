@@ -10,6 +10,8 @@ class Query {
 	//The connection to the database for the query
 	protected $connection;
 
+	//Stored data for the query
+
 	function __construct($connection = NULL)
 	{
 		//If no connection was passed, grab a default one
@@ -36,9 +38,9 @@ class Query {
 	}
 
 	/**
-	*This function sets the type of query we are executing
+	*This function sets the type of query we are executing, the object contains relevant data to the query
 	*/
-	public function SetQueryType()
+	public function SetQueryObject()
 	{
 
 	}
@@ -46,7 +48,7 @@ class Query {
 	/**
 	*This function executes the query and gets the result
 	*/
-	public function GetResult()
+	public function ExecuteQuery()
 	{
 
 	}
@@ -92,8 +94,13 @@ class Query {
 		//Execute the query
 		$stmt->execute();
 
+		if($stmt->error)
+			throw new \CORE\Error\Exception("Error executing query, ".$stmt->error, \CORE\Error\DatabaseError\E_FAILED_QUERY);
+
 		//Get the result object
 		$result = $stmt->get_result();
+		if($result === false)
+			return array();
 		$fields = $result->fetch_fields();
 
 		//Assemble data types based on fields
