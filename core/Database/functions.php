@@ -47,6 +47,20 @@ function DefineConstants($settings)
 	define(__NAMESPACE__."\Table\KeyTypes\UNIQUE", "UNIQUE");
 	//Define EXTRA types
 	define(__NAMESPACE__."\Table\ExtraTypes\AUTO_INCREMENT", "AUTO_INCREMENT");
+
+	//Define where constants
+	//Comparison Types
+	define(__NAMESPACE__."\Where\Comparisons\EQUAL", "=");
+	define(__NAMESPACE__."\Where\Comparisons\NOTEQUAL", "<>");
+	define(__NAMESPACE__."\Where\Comparisons\GREATER", ">");
+	define(__NAMESPACE__."\Where\Comparisons\GREATEREQUAL", ">=");
+	define(__NAMESPACE__."\Where\Comparisons\LESSEQUAL", "<=");
+	define(__NAMESPACE__."\Where\Comparisons\LESS", "<");
+	define(__NAMESPACE__."\Where\Comparisons\LIKE", "LIKE");
+	//Bind Types
+	define(__NAMESPACE__."\Where\ClauseBinders\AND", "AND");
+	define(__NAMESPACE__."\Where\ClauseBinders\OR", "OR");
+
 }
 
 function UpdateCoreTables()

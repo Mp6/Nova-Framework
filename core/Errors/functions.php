@@ -35,6 +35,9 @@ function DefineConstants($settings)
 	define(__NAMESPACE__."\DatabaseError\E_PREPARE_ERROR", 135);
 	define(__NAMESPACE__."\DatabaseError\E_INVALID_COLUMN", 136);
 	define(__NAMESPACE__."\DatabaseError\E_FAILED_QUERY", 137);
+	define(__NAMESPACE__."\DatabaseError\E_INVALID_BIND_TYPE", 138);
+	define(__NAMESPACE__."\DatabaseError\E_INVALID_COMPARISON", 139);
+	define(__NAMESPACE__."\DatabaseError\E_INVALID_CLAUSE", 140);
 }
 
 /**
@@ -133,6 +136,15 @@ function ErrorHandler($error_number, $error_string, $error_file, $error_line, $e
 		break;
 		case DatabaseError\E_FAILED_QUERY:
 			$type_name = "Query Failed to Execute";
+		break;
+		case DatabaseError\E_INVALID_BIND_TYPE:
+			$type_name = "Invalid Data Type in Bind Object";
+		break;
+		case DatabaseError\E_INVALID_COMPARISON:
+			$type_name = "Invalid Comparison";
+		break;
+		case DatabaseError\E_INVALID_CLAUSE:
+			$type_name = "Invalid Clause";
 		break;
 
 		//Unhandled Error Codes

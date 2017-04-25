@@ -33,4 +33,22 @@ function GetCoreConstants($namespace)
 
 	return $return;
 }
+
+/**
+*This function validates a constant within a subset of constants
+*/
+function ValidateCoreConstant($namespace, $constant)
+{
+	//Get the ColumnType constants
+	$constants = GetCoreConstants($namespace);
+
+	//Iterate through the constants to find a matching constant
+	foreach($constants as $c_data_type)
+	{
+		if($c_data_type === $constant)
+			return true;
+	}
+
+	return false;
+}
 ?>
